@@ -1,0 +1,23 @@
+.product{
+    display: flex;
+    margin-bottom: 5px;
+    
+    border-bottom:  1px solid lightgray;
+    padding-bottom: 5px;
+}
+.product-name {
+    color: rgb(75, 75, 189);
+    font-weight: 700;
+}
+.sendPert{
+    padding-left: 20px;
+    margin-right: 10px;
+}
+.main-button{
+    width: 150px;
+    height: 30px;
+    background-color: goldenrod;
+    border: 1px solid gray;
+    border-radius: 5px;
+    cursor: pointer;
+}
