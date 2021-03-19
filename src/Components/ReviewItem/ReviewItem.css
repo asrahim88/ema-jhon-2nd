@@ -1,0 +1,14 @@
+.review {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    width: 950px;
+    border-bottom: 1px solid lightgray;
+    margin-left: 150px;
+
+}
+
+.productStyle {
+    border-right: 1px solid lightgray;
+    float: left;
+
+}

@@ -1,15 +1,14 @@
 .product{
     display: flex;
     margin-bottom: 5px;
-    
     border-bottom:  1px solid lightgray;
     padding-bottom: 5px;
 }
 .product-name {
-    color: rgb(75, 75, 189);
-    font-weight: 700;
+    color: rgb(20, 152, 240);
+    font-weight: 400;
 }
-.sendPert{
+.secndPert{
     padding-left: 20px;
     margin-right: 10px;
 }
