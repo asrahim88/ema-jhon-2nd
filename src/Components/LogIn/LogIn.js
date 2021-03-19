@@ -1,30 +1,51 @@
 import React, { useState, useContext } from 'react';
 import './LogIn.css';
-import firebase from "firebase/app";
-import "firebase/auth";
-import firebaseConfig from '../../firebase.config';
 import Button from '@material-ui/core/Button';
-import { UserContext }from '../../App';
+import { UserContext } from '../../App';
 import { useHistory, useLocation } from 'react-router';
-
-
-
-
-
-
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
- }else {
-    firebase.app(); // if already initialized, use that one
- }
- 
+import { createUserWithEmailAndPassword, handleFacebookSignIn, handleGoogleSignIn, handleSignOut, initializeLogInFrameWork, signInWithEmailAndPassword } from './LogInManager';
 
 
 function LogIn() {
+
+  initializeLogInFrameWork();
+
+  const [loggedInUser, setLoggedInUser] = useContext(UserContext);
   const history = useHistory();
   const location = useLocation();
   let { from } = location.state || { from: { pathname: "/" } };
+
+  const handleResponse = (res, doRedirect) => {
+    setUser(res)
+    setLoggedInUser(res)
+    if(doRedirect) {
+      history.replace(from);
+    }
+  }
+
+  const googleSignIn = () => {
+    handleGoogleSignIn()
+      .then(res => {
+        handleResponse(res, true);
+      });
+  }
+
+
+  const signOut = () => {
+    handleSignOut()
+      .then(res => {
+        handleResponse(res, false);
+      })
+  }
+
+
+  const facebookSignIn = () => {
+    handleFacebookSignIn()
+      .then(res => {
+        handleResponse(res, true);
+      })
+  }
+
   const [newUser, setNewUser] = useState(false);
   const [user, setUser] = useState({
     isSignedIn: false,
@@ -35,64 +56,6 @@ function LogIn() {
     success: false
   })
 
-  const googleProvider = new firebase.auth.GoogleAuthProvider();
-  const facebookProvider = new firebase.auth.FacebookAuthProvider();
-  const [loggedInUser, setLoggedInUser] = useContext(UserContext);
-  const handleFacebookSignIn = () => {
-    firebase
-      .auth()
-      .signInWithPopup(facebookProvider)
-      .then((result) => {
-        const credential = result.credential;
-        const user = result.user;
-        console.log(user);
-        const accessToken = credential.accessToken;
-        console.log(accessToken);
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        const email = error.email;
-        const credential = error.credential;
-        console.log(credential, errorMessage, errorCode, email, credential);
-      });
-  }
-
-  const handleMaterialSignIn = () => {
-    firebase.auth()
-      .signInWithPopup(googleProvider)
-      .then(res => {
-        const { displayName, photoURL, email } = res.user;
-        const signedInUser = {
-          isSignedIn: true,
-          name: displayName,
-          email: email,
-          photo: photoURL,
-        }
-        setUser(signedInUser);
-      })
-      .catch((err) => {
-        console.log(err);
-        console.log(err.message);
-      })
-  }
-  const handleMaterialSignOut = () => {
-    firebase.auth()
-      .signOut()
-      .then(() => {
-        const signedOutUser = {
-          isSignedIn: false,
-          name: '',
-          email: '',
-          error: '',
-          photoURL: '',
-        }
-        setUser(signedOutUser);
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-  }
   const handleBlur = (e) => {
     let isFiledValid = true;
     if (e.target.name === 'email') {
@@ -110,73 +73,38 @@ function LogIn() {
 
   const handleClick = (e) => {
     if (newUser && user.email && user.password) {
-      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
-        .then((res) => {
-          const newUser = { ...user }
-          newUser.success = true;
-          newUser.error = '';
-          setUser(newUser);
-          updateUserName(user.name);
-        })
-        .catch((error) => {
-          const newUserInfo = { ...user }
-          newUserInfo.success = false;
-          newUserInfo.error = error.message;
-          setUser(newUserInfo);
-          console.log(error.message);
+      createUserWithEmailAndPassword(user.name, user.email, user.password)
+        .then(res => {
+          handleResponse(res, true);
         })
     }
 
     if (!newUser && user.email && user.password) {
-      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
-        .then((res) => {
-          const newUser = { ...user }
-          newUser.success = true;
-          newUser.error = '';
-          setUser(newUser)
-          setLoggedInUser(newUser);
-          history.replace(from);
-          console.log('sign in user', res.user);
+      signInWithEmailAndPassword(user.email, user.password)
+        .then(res => {
+          handleResponse(res, true);
         })
-        .catch((error) => {
-          const newUserInfo = { ...user }
-          newUserInfo.success = false;
-          newUserInfo.error = error.message;
-          setUser(newUserInfo);
-          console.log(error.message);
-        });
     }
     e.preventDefault();
-  }
-
-  const updateUserName = name => {
-    const user = firebase.auth().currentUser;
-    user.updateProfile({
-      displayName: name
-    }).then(function () {
-      console.log("profile updated successfully", user);
-    }).catch(function (error) {
-      console.log(error.message);
-    });
   }
 
   return (
     <div className="body">
       <div>
-        
+
         {
           user.isSignedIn ?
-            <Button onClick={handleMaterialSignOut} variant="contained" color="secondary">
+            <Button onClick={signOut} variant="contained" color="secondary">
               Sign Out
             </Button> :
-            <Button onClick={handleMaterialSignIn} variant="contained" color="secondary">
+            <Button onClick={googleSignIn} variant="contained" color="secondary">
               Sign In
             </Button>
         }
         <br />
         <br />
 
-        <Button onClick={handleFacebookSignIn} variant="contained" color="secondary">
+        <Button onClick={facebookSignIn} variant="contained" color="secondary">
           Sign In Using Facebook
             </Button>
       </div>
